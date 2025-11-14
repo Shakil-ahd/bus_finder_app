@@ -7,24 +7,36 @@ class BusListShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Shimmer.fromColors ব্যবহার করে আমরা একটি অ্যানিমেশন তৈরি করি
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
+    // --- ❗️ সমাধান: হালকা লাল শিমার ---
+    final baseColor = isDark
+        ? Colors.red[900]!
+        : Colors.red[100]!;
+    final highlightColor = isDark
+        ? Colors.red[800]!
+        : Colors.red[50]!;
+
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!, // লোডিং এর বেস কালার
-      highlightColor:
-          Colors.grey[100]!, // অ্যানিমেশনের হাইলাইট কালার
+      baseColor: baseColor,
+      highlightColor: highlightColor,
       child: ListView.builder(
-        itemCount: 8, // আমরা ৮টি ডামি লোডিং কার্ড দেখাবো
+        padding: const EdgeInsets.all(16.0),
+        itemCount: 8,
         itemBuilder: (context, index) {
-          // এটি আপনার Bus Card-এর একটি 'ভূত' বা 'প্লেস-হোল্ডার' ডিজাইন
           return Card(
             margin: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 4,
+              vertical: 8.0,
             ),
             child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               leading: const CircleAvatar(
                 backgroundColor: Colors.white,
-                radius: 24,
+                radius: 22,
               ),
               title: Container(
                 height: 16.0,
@@ -32,14 +44,13 @@ class BusListShimmer extends StatelessWidget {
                 color: Colors.white,
               ),
               subtitle: Container(
-                height: 12.0,
+                height: 14.0,
                 width: double.infinity,
                 margin: const EdgeInsets.only(top: 8.0),
                 color: Colors.white,
               ),
-              trailing: Container(
-                height: 16.0,
-                width: 40.0,
+              trailing: const Icon(
+                Icons.favorite_border,
                 color: Colors.white,
               ),
             ),

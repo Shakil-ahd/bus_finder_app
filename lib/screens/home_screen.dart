@@ -25,7 +25,6 @@ class _HomePageState extends State<HomePage> {
   String? selectedTo;
   bool isEnglish = true;
 
-  // Bus name search only
   List<BusModel> getSearchBuses() {
     if (searchQuery.isEmpty) return [];
     return busList.where((bus) {
@@ -36,7 +35,6 @@ class _HomePageState extends State<HomePage> {
     }).toList();
   }
 
-  // Location filter
   List<BusModel> getFilteredBuses() {
     List<BusModel> filtered = busList;
 
@@ -118,7 +116,6 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Column(
         children: [
-          // Search Bus Name Only
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
@@ -132,14 +129,14 @@ class _HomePageState extends State<HomePage> {
               onChanged: (val) {
                 setState(() {
                   searchQuery = val;
-                  // Ignore location filters when searching
+
                   selectedFrom = null;
                   selectedTo = null;
                 });
               },
             ),
           ),
-          // From dropdown
+
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 8.0,
@@ -162,13 +159,12 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   selectedFrom = val;
                   selectedTo = null;
-                  searchQuery =
-                      ''; // Clear search when selecting location
+                  searchQuery = '';
                 });
               },
             ),
           ),
-          // To dropdown
+
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 8.0,
@@ -191,13 +187,12 @@ class _HomePageState extends State<HomePage> {
               onChanged: (val) {
                 setState(() {
                   selectedTo = val;
-                  searchQuery =
-                      ''; // Clear search when selecting location
+                  searchQuery = '';
                 });
               },
             ),
           ),
-          // Bus list
+
           Expanded(
             child: filteredBuses.isEmpty
                 ? Center(

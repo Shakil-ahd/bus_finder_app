@@ -218,7 +218,6 @@ final List<BusModel> busList = [
     ],
   ),
 
-  // নতুন ২০ bus (মোট 30)
   BusModel(
     nameEn: 'Shikor 11',
     nameBn: 'শিকর ১১',

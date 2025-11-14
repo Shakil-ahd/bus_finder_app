@@ -1,4 +1,3 @@
-// lib/models/bus_model.dart
 class BusModel {
   final String nameEn;
   final String nameBn;

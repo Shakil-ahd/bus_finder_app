@@ -2,67 +2,55 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FavoriteService {
-  static SharedPreferences? _prefs;
-  static List<String> _favorites = [];
+  // ❗️ 'static' নয়, এগুলো এখন ইন্সট্যান্স ভেরিয়েবল
+  late final SharedPreferences _prefs;
+  List<String> _favorites = [];
+  List<String> _searchHistory = [];
+  static const String _historyKey =
+      'searchHistory'; // এটি static থাকতে পারে
 
-  // --- ❗️ নতুন কোড: সার্চ হিস্ট্রি ---
-  static List<String> _searchHistory = [];
-  static const String _historyKey = 'searchHistory';
-  // ---
+  // --- ❗️ সমাধান: কনস্ট্রাক্টরটি SharedPreferences গ্রহণ করবে ---
+  FavoriteService(this._prefs);
 
   List<String> get favorites => _favorites;
 
+  // --- ❗️ সমাধান: 'init' এখন শুধু ডেটা লোড করবে ---
   Future<void> init() async {
-    _prefs ??= await SharedPreferences.getInstance();
+    // ❗️ SharedPreferences.getInstance() কল করার দরকার নেই, কারণ এটি কনস্ট্রাক্টরেই আছে
     _favorites =
-        _prefs!.getStringList('favoriteBuses') ?? [];
-
-    // --- ❗️ নতুন কোড: হিস্ট্রি লোড করা ---
+        _prefs.getStringList('favoriteBuses') ?? [];
     _searchHistory =
-        _prefs!.getStringList(_historyKey) ?? [];
-    // ---
+        _prefs.getStringList(_historyKey) ?? [];
   }
 
-  // --- ফেভারিট লজিক (অপরিবর্তিত) ---
+  // --- ❗️ 'static' ছাড়া ফাংশন ---
   bool isFavorite(String busNameEn) {
     return _favorites.contains(busNameEn);
   }
 
+  // --- ❗️ 'static' ছাড়া ফাংশন ---
   Future<void> toggleFavorite(String busNameEn) async {
     if (isFavorite(busNameEn)) {
       _favorites.remove(busNameEn);
     } else {
       _favorites.add(busNameEn);
     }
-    await _prefs!.setStringList(
-      'favoriteBuses',
-      _favorites,
-    );
+    await _prefs.setStringList('favoriteBuses', _favorites);
   }
 
-  // --- ❗️ নতুন ফাংশন: সার্চ হিস্ট্রি ---
-
-  // সার্চ হিস্ট্রি লিস্ট রিটার্ন করে
+  // --- ❗️ 'static' ছাড়া ফাংশন ---
   List<String> getSearchHistory() {
     return _searchHistory;
   }
 
-  // সার্চ হিস্ট্রি সেভ করে
+  // --- ❗️ 'static' ছাড়া ফাংশন ---
   Future<void> addSearchToHistory(String query) async {
-    // যদি এই সার্চটি আগে থেকেই থাকে, তবে এটিকে লিস্ট থেকে মুছে ফেলুন
     _searchHistory.remove(query);
-    // নতুন সার্চটি লিস্টের প্রথমে যোগ করুন
     _searchHistory.insert(0, query);
 
-    // আমরা শুধু শেষ ৫টি সার্চ হিস্ট্রি রাখবো
     if (_searchHistory.length > 5) {
       _searchHistory = _searchHistory.sublist(0, 5);
     }
-
-    // SharedPreferences-এ সেভ করুন
-    await _prefs!.setStringList(
-      _historyKey,
-      _searchHistory,
-    );
+    await _prefs.setStringList(_historyKey, _searchHistory);
   }
 }
