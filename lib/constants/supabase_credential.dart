@@ -1,0 +1,4 @@
+const String YOUR_SUPABASE_URL =
+    'https://kwtirnmvtnugfjmwtrqy.supabase.co';
+const String YOUR_SUPABASE_ANON_KEY =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3dGlybm12dG51Z2ZqbXd0cnF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxODM2NjUsImV4cCI6MjA3ODc1OTY2NX0.9krAqQC_daN4DHogM06b4hmN8N2r7dGKQwSFuniOwwE';

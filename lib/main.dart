@@ -1,252 +1,163 @@
-// lib/main.dart
-import 'package:figma/services/custom_scaffold.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// ignore_for_file: prefer_const_constructors
 
-import 'screens/search_page.dart';
-import 'screens/all_routes_page.dart';
-import 'screens/favorites_page.dart';
-import 'services/favorite_service.dart';
+import 'package:figma/constants/supabase_credential.dart';
+import 'package:figma/controllers/settings_conroller.dart';
+import 'package:figma/localization/app_translation.dart';
+import 'package:figma/views/bus_details_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'constants/colors/app_colors.dart';
+
+import 'controllers/bus_controller.dart';
+import 'controllers/favorite_controller.dart';
+
+import 'controllers/route_controller.dart';
+
+import 'views/main_navigation.dart';
+import 'views/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final prefs = await SharedPreferences.getInstance();
-  final favoriteService = FavoriteService(prefs);
-  await favoriteService.init();
+  await Supabase.initialize(
+    url: YOUR_SUPABASE_URL,
+    anonKey: YOUR_SUPABASE_ANON_KEY,
+  );
 
-  runApp(MyApp(favoriteService: favoriteService));
+  await GetStorage.init();
+
+  // Initialize Controllers
+  Get.put(SettingsController(), permanent: true);
+  Get.put(BusController(), permanent: true);
+  Get.put(FavoriteController(), permanent: true);
+  Get.put(RouteController(), permanent: true);
+
+  runApp(const MyApp());
 }
 
-final ValueNotifier<ThemeMode> themeNotifier =
-    ValueNotifier(ThemeMode.light);
+final supabase = Supabase.instance.client;
 
-class MyApp extends StatefulWidget {
-  final FavoriteService favoriteService;
-
-  const MyApp({super.key, required this.favoriteService});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  bool _isBangla = false;
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  void _toggleLanguage(bool value) {
-    setState(() {
-      _isBangla = value;
-    });
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> pages = [
-      SearchPage(
-        isBangla: _isBangla,
-        favoriteService: widget.favoriteService,
+    final SettingsController settingsController =
+        Get.find();
+
+    // Base Text Theme
+    const textTheme = TextTheme(
+      headlineSmall: TextStyle(fontSize: 20),
+      titleLarge: TextStyle(
+          fontSize: 18, fontWeight: FontWeight.w600),
+      titleMedium: TextStyle(
+          fontSize: 15, fontWeight: FontWeight.w500),
+      bodyMedium: TextStyle(fontSize: 14),
+      bodySmall: TextStyle(fontSize: 12),
+    );
+
+    return GetMaterialApp(
+      title: 'Dhaka Bus Finder',
+      debugShowCheckedModeBanner: false,
+
+      // Localization Setup
+      translations: AppTranslations(),
+      locale: settingsController.isBangla.value
+          ? const Locale('bn', 'BD')
+          : const Locale('en', 'US'),
+      fallbackLocale: const Locale('en', 'US'),
+
+      // Light Theme (Default)
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.light,
+        primaryColor: AppColors.gradientPurple,
+        scaffoldBackgroundColor: AppColors.backgroundLight,
+        cardColor: AppColors.cardLight,
+        fontFamily: 'Roboto',
+        disabledColor: AppColors.placeholderTextLight,
+        textTheme: textTheme.copyWith(
+          titleLarge: textTheme.titleLarge
+              ?.copyWith(color: AppColors.primaryTextLight),
+          titleMedium: textTheme.titleMedium
+              ?.copyWith(color: AppColors.primaryTextLight),
+          bodyMedium: textTheme.bodyMedium?.copyWith(
+              color: AppColors.secondaryTextLight),
+        ),
+        bottomNavigationBarTheme:
+            const BottomNavigationBarThemeData(
+          backgroundColor: Colors.white,
+          selectedItemColor: AppColors.gradientPurple,
+          unselectedItemColor:
+              AppColors.placeholderTextLight,
+          elevation: 4,
+        ),
+        toggleButtonsTheme: ToggleButtonsThemeData(
+          borderColor: AppColors.gradientPurple,
+          color: AppColors.gradientPurple,
+          selectedBorderColor: AppColors.gradientPurple,
+          selectedColor: Colors.white,
+          fillColor: AppColors.gradientPurple,
+        ),
       ),
-      AllRoutesPage(
-        isBangla: _isBangla,
-        favoriteService: widget.favoriteService,
+
+      // Dark Theme (User Selectable)
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        primaryColor: AppColors.gradientPink,
+        scaffoldBackgroundColor: AppColors.backgroundDark,
+        cardColor: AppColors.cardDark,
+        fontFamily: 'Roboto',
+        disabledColor: AppColors.placeholderTextDark,
+        textTheme: textTheme.copyWith(
+          titleLarge: textTheme.titleLarge
+              ?.copyWith(color: AppColors.primaryTextDark),
+          titleMedium: textTheme.titleMedium
+              ?.copyWith(color: AppColors.primaryTextDark),
+          bodyMedium: textTheme.bodyMedium?.copyWith(
+              color: AppColors.secondaryTextDark),
+        ),
+        bottomNavigationBarTheme:
+            const BottomNavigationBarThemeData(
+          backgroundColor: AppColors.cardDark,
+          selectedItemColor: AppColors.gradientPink,
+          unselectedItemColor:
+              AppColors.placeholderTextDark,
+          elevation: 4,
+        ),
+        toggleButtonsTheme: const ToggleButtonsThemeData(
+          borderColor: AppColors.gradientPink,
+          color: AppColors.gradientPink,
+          selectedBorderColor: AppColors.gradientPink,
+          selectedColor: Colors.white,
+          fillColor: AppColors.gradientPink,
+        ),
       ),
-      FavoritesPage(
-        isBangla: _isBangla,
-        favoriteService: widget.favoriteService,
-      ),
-    ];
 
-    final List<String> pageTitles = _isBangla
-        ? ['অনুসন্ধান', 'সব রুট', 'প্রিয় তালিকা']
-        : ['Search', 'All Routes', 'Favorites'];
+      // Set initial ThemeMode based on SettingsController
+      themeMode: settingsController.isDarkMode.value
+          ? ThemeMode.dark
+          : ThemeMode.light,
 
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeNotifier,
-      builder: (context, mode, child) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'Bus Route Finder',
-
-          // --- লাইট থিম ---
-          theme: ThemeData(
-            brightness: Brightness.light,
-            primaryColor: const Color(
-              0xFFDA70D6,
-            ), // Orchid Pink
-            colorScheme:
-                ColorScheme.fromSwatch(
-                  primarySwatch: Colors.deepPurple,
-                ).copyWith(
-                  secondary: const Color(
-                    0xFF87CEEB,
-                  ), // Light Sky Blue
-                  primary: const Color(0xFFDA70D6),
-                ),
-            scaffoldBackgroundColor: Colors.transparent,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              foregroundColor: Colors.white,
-            ),
-            // --- ❗️ সমাধান: CardThemeData ---
-            cardTheme: CardThemeData(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              color: Colors.white.withOpacity(
-                0.85,
-              ), // withOpacity এখানে ঠিক আছে
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: Colors.white.withOpacity(0.8),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Color(0xFFDA70D6),
-                  width: 2,
-                ),
-              ),
-            ),
-            elevatedButtonTheme: ElevatedButtonThemeData(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(
-                  0xFFDA70D6,
-                ), // Orchid Pink
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            bottomNavigationBarTheme:
-                BottomNavigationBarThemeData(
-                  backgroundColor: Colors.white.withOpacity(
-                    0.9,
-                  ),
-                  selectedItemColor: const Color(
-                    0xFFDA70D6,
-                  ),
-                  unselectedItemColor: Colors.grey[600],
-                ),
-          ),
-
-          // --- ডার্ক থিম ---
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            primaryColor: const Color(0xFFDA70D6),
-            colorScheme:
-                ColorScheme.fromSwatch(
-                  primarySwatch: Colors.deepPurple,
-                  brightness: Brightness.dark,
-                ).copyWith(
-                  secondary: const Color(0xFF87CEEB),
-                  primary: const Color(0xFFDA70D6),
-                ),
-            scaffoldBackgroundColor: Colors.transparent,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              foregroundColor: Colors.white,
-            ),
-            // --- ❗️ সমাধান: CardThemeData ---
-            cardTheme: CardThemeData(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              // ❗️ Deprecated ওয়ার্নিং ঠিক করা হয়েছে (0.4 * 255 = 102 = 66 in hex)
-              color: const Color(
-                0x66000000,
-              ), // Colors.black.withOpacity(0.4)
-            ),
-            inputDecorationTheme: InputDecorationTheme(
-              filled: true,
-              fillColor: Colors.black.withOpacity(0.3),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Color(0xFFDA70D6),
-                  width: 2,
-                ),
-              ),
-            ),
-            elevatedButtonTheme: ElevatedButtonThemeData(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFDA70D6),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            bottomNavigationBarTheme:
-                BottomNavigationBarThemeData(
-                  backgroundColor: Colors.black.withOpacity(
-                    0.8,
-                  ),
-                  selectedItemColor: const Color(
-                    0xFFDA70D6,
-                  ),
-                  unselectedItemColor: Colors.grey[400],
-                ),
-          ),
-
-          themeMode: mode,
-
-          home: CustomScaffold(
-            isBangla: _isBangla,
-            onLanguageChanged: _toggleLanguage,
-            title: pageTitles[_selectedIndex],
-            body: pages[_selectedIndex],
-            bottomNavigationBar: BottomNavigationBar(
-              currentIndex: _selectedIndex,
-              onTap: _onItemTapped,
-              items: [
-                BottomNavigationBarItem(
-                  icon: const Icon(CupertinoIcons.search),
-                  label: _isBangla ? 'অনুসন্ধান' : 'Search',
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(CupertinoIcons.bus),
-                  label: _isBangla
-                      ? 'সব রুট'
-                      : 'All Routes',
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(
-                    CupertinoIcons.heart_fill,
-                  ),
-                  label: _isBangla ? 'প্রিয়' : 'Favorites',
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      // Routes
+      initialRoute: '/splash',
+      getPages: [
+        GetPage(
+            name: '/splash',
+            page: () => const SplashScreen(),
+            transition: Transition.fadeIn),
+        GetPage(
+            name: '/home',
+            page: () => MainNavigation(),
+            transition: Transition.fadeIn),
+        GetPage(
+            name: '/details',
+            page: () => DetailsScreen(),
+            transition: Transition.rightToLeftWithFade),
+      ],
     );
   }
 }
