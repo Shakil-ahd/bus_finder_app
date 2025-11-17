@@ -46,11 +46,13 @@ class FareController extends GetxController {
     ];
 
     // Build index maps
-    for (int i = 0; i < enStops.length; i++) {
-      if (enStops[i].isNotEmpty)
+    for (int i = 1; i < enStops.length; i++) {
+      if (enStops[i].isNotEmpty) {
         stopIndexMapEn[enStops[i]] = i;
-      if (bnStops[i].isNotEmpty)
+      }
+      if (bnStops[i].isNotEmpty) {
         stopIndexMapBn[bnStops[i]] = i;
+      }
     }
 
     _updateDisplayStops();

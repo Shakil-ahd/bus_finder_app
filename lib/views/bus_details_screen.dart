@@ -1,4 +1,3 @@
-// lib/screens/details_screen.dart
 import 'package:figma/constants/colors/app_colors.dart';
 import 'package:figma/controllers/settings_conroller.dart';
 import 'package:figma/widgets/app-bar.dart';
@@ -9,6 +8,7 @@ import 'package:get/get.dart';
 import '../controllers/bus_controller.dart';
 import '../controllers/favorite_controller.dart';
 import '../controllers/fare_controller.dart';
+
 import '../models/bus_model.dart';
 
 class DetailsScreen extends StatefulWidget {
@@ -29,12 +29,15 @@ class _DetailsScreenState extends State<DetailsScreen> {
   @override
   void initState() {
     super.initState();
+    // Bus object এখানে সেফ
     bus = busController.selectedBus.value!;
+    // FareController এখানে তৈরি করা হলো
     fareController = Get.put(FareController(bus));
   }
 
   @override
   void dispose() {
+    // FareController পেজ বন্ধ হওয়ার সাথে সাথে মেমরি থেকে সরানো হলো
     Get.delete<FareController>();
     super.dispose();
   }
@@ -50,13 +53,11 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
     return Scaffold(
       appBar: GradientAppBar(
+        // FIX: title এখন সরাসরি Widget গ্রহণ করে, তাই Obx ঠিকমতো কাজ করবে।
         title: Obx(() => Text(
-              settingsController.isBangla.value
-                  ? bus.nameBn
-                  : bus.nameEn,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold),
-            )),
+            settingsController.isBangla.value
+                ? bus.nameBn
+                : bus.nameEn)),
         actions: [
           Obx(() {
             final isFav =
@@ -81,34 +82,41 @@ class _DetailsScreenState extends State<DetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoCard(),
+            _buildInfoCard(context, bus),
             const SizedBox(height: 24),
-            _buildFareCalculatorCard(),
+            _buildFareCalculatorCard(
+                context, fareController, bus),
             const SizedBox(height: 24),
-            Text(
-              'stoppages_bangla'.tr,
-              style: context.textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
+
+            // --- শুধুমাত্র একটি স্টপেজ লিস্ট ব্লক রাখা হলো ---
+            Obx(() => Text(
+                  settingsController.isBangla.value
+                      ? 'stoppages_bangla'.tr
+                      : 'stoppages_english'.tr,
+                  style: context.textTheme.titleLarge
+                      ?.copyWith(
+                          fontWeight: FontWeight.w600),
+                )),
             const SizedBox(height: 10),
-            _buildStoppageCard(
-                bus.stoppagesBn, AppColors.primaryGradient),
-            const SizedBox(height: 24),
-            Text(
-              'stoppages_english'.tr,
-              style: context.textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w600),
+            Obx(
+              () => _buildStoppageCard(
+                context,
+                settingsController.isBangla.value
+                    ? bus.stoppagesBn
+                    : bus.stoppagesEn,
+                AppColors.primaryGradient,
+              ),
             ),
-            const SizedBox(height: 10),
-            _buildStoppageCard(bus.stoppagesEn,
-                AppColors.primaryGradientReversed),
+            // --- আগের ইংরেজি স্টপেজ ব্লক সরানো হয়েছে ---
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(
+      BuildContext context, BusModel bus) {
+    // FIX: context.isDarkMode এর বদলে Get.isDarkMode ব্যবহার করা হলো
     final isDarkMode = Get.isDarkMode;
     return Container(
       width: double.infinity,
@@ -119,41 +127,44 @@ class _DetailsScreenState extends State<DetailsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4)),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
         ],
       ),
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Obx(() => Text(
-                settingsController.isBangla.value
-                    ? bus.nameBn
-                    : bus.nameEn,
-                style: context.textTheme.headlineSmall
-                    ?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.gradientPink,
-                ),
-              )),
-          const Divider(height: 24),
-          Obx(() => Text(
-                '${'from'.tr}: ${settingsController.isBangla.value ? bus.fromBn : bus.fromEn}',
-                style: context.textTheme.titleMedium,
-              )),
-          const SizedBox(height: 4),
-          Obx(() => Text(
-                '${'to'.tr}: ${settingsController.isBangla.value ? bus.toBn : bus.toEn}',
-                style: context.textTheme.titleMedium,
-              )),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Obx(() => Text(
+                  settingsController.isBangla.value
+                      ? bus.nameBn
+                      : bus.nameEn,
+                  style: context.textTheme.headlineSmall
+                      ?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.gradientPink,
+                  ),
+                )),
+            const Divider(height: 24),
+            Obx(() => Text(
+                  '${'from'.tr}: ${settingsController.isBangla.value ? bus.fromBn : bus.fromEn}',
+                  style: context.textTheme.titleMedium,
+                )),
+            const SizedBox(height: 4),
+            Obx(() => Text(
+                  '${'to'.tr}: ${settingsController.isBangla.value ? bus.toBn : bus.toEn}',
+                  style: context.textTheme.titleMedium,
+                )),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildStoppageCard(
+  Widget _buildStoppageCard(BuildContext context,
       List<String> stoppages, Gradient gradient) {
     final isDarkMode = Get.isDarkMode;
     return Container(
@@ -165,24 +176,28 @@ class _DetailsScreenState extends State<DetailsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4)),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
         ],
       ),
-      padding: const EdgeInsets.all(16.0),
-      child: Wrap(
-        spacing: 8.0,
-        runSpacing: 8.0,
-        children: stoppages
-            .map((stop) => StoppageChip(
-                label: stop, gradient: gradient))
-            .toList(),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Wrap(
+          spacing: 8.0,
+          runSpacing: 8.0,
+          children: stoppages
+              .map((stop) => StoppageChip(
+                  label: stop, gradient: gradient))
+              .toList(),
+        ),
       ),
     );
   }
 
-  Widget _buildFareCalculatorCard() {
+  Widget _buildFareCalculatorCard(BuildContext context,
+      FareController controller, BusModel bus) {
     final isDarkMode = Get.isDarkMode;
     return Container(
       width: double.infinity,
@@ -193,36 +208,36 @@ class _DetailsScreenState extends State<DetailsScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4)),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
         ],
       ),
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'fare_calculator'.tr,
-            style: context.textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 16),
-
-          // From Stop
-          Obx(() => DropdownButtonFormField<String>(
-                value: fareController
-                        .fromStop.value!.isNotEmpty
-                    ? fareController.fromStop.value
-                    : null,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'fare_calculator'.tr,
+              style: context.textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
+            Obx(
+              () => DropdownButtonFormField<String>(
+                value: controller.fromStop.value,
                 hint: Text('select_starting_stop'.tr),
                 isExpanded: true,
-                items: fareController.allStops
+                items: controller.allStops
                     .map((stop) => DropdownMenuItem(
-                        value: stop, child: Text(stop)))
+                          value: stop,
+                          child: Text(stop),
+                        ))
                     .toList(),
                 onChanged: (value) =>
-                    fareController.setFromStop(value),
+                    controller.setFromStop(value),
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.my_location,
                       color: AppColors.gradientPink),
@@ -230,24 +245,22 @@ class _DetailsScreenState extends State<DetailsScreen> {
                       borderRadius:
                           BorderRadius.circular(8)),
                 ),
-              )),
-
-          const SizedBox(height: 16),
-
-          // To Stop
-          Obx(() => DropdownButtonFormField<String>(
-                value:
-                    fareController.toStop.value!.isNotEmpty
-                        ? fareController.toStop.value
-                        : null,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Obx(
+              () => DropdownButtonFormField<String>(
+                value: controller.toStop.value,
                 hint: Text('select_destination_stop'.tr),
                 isExpanded: true,
-                items: fareController.allStops
+                items: controller.allStops
                     .map((stop) => DropdownMenuItem(
-                        value: stop, child: Text(stop)))
+                          value: stop,
+                          child: Text(stop),
+                        ))
                     .toList(),
                 onChanged: (value) =>
-                    fareController.setToStop(value),
+                    controller.setToStop(value),
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.location_on,
                       color: AppColors.gradientPurple),
@@ -255,54 +268,56 @@ class _DetailsScreenState extends State<DetailsScreen> {
                       borderRadius:
                           BorderRadius.circular(8)),
                 ),
-              )),
-
-          const SizedBox(height: 16),
-
-          // Fare Result
-          Obx(() {
-            if (fareController.calculatedFare.value == 0)
-              return const SizedBox.shrink();
-            if (fareController.calculatedFare.value == -1) {
-              return Center(
-                child: Text(
-                  'select_different_stops'.tr,
-                  style: const TextStyle(
-                      color: AppColors.gradientRed,
-                      fontSize: 16),
-                ),
-              );
-            }
-            return Center(
-              child: Column(
-                children: [
-                  Text(
-                    'estimated_fare'.trParams({
-                      'fare': fareController
-                          .calculatedFare.value
-                          .toString()
-                    }),
-                    style: context.textTheme.headlineSmall
-                        ?.copyWith(
-                            fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Obx(() {
+              if (controller.calculatedFare.value == 0) {
+                return const SizedBox.shrink();
+              }
+              if (controller.calculatedFare.value == -1) {
+                return Center(
+                  child: Text(
+                    'select_different_stops'.tr,
+                    style: const TextStyle(
+                        color: AppColors.gradientRed,
+                        fontSize: 16),
                   ),
-                  if (fareController.calculatedFare.value ==
-                      bus.minFare)
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        'min_fare_warning'.trParams({
-                          'fare': bus.minFare.toString()
-                        }),
-                        style: context.textTheme.bodySmall,
+                );
+              }
+              return Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'estimated_fare'.trParams({
+                        'fare': controller
+                            .calculatedFare.value
+                            .toString()
+                      }),
+                      style: context.textTheme.headlineSmall
+                          ?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                ],
-              ),
-            );
-          }),
-        ],
+                    if (controller.calculatedFare.value ==
+                        bus.minFare)
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          'min_fare_warning'.trParams({
+                            'fare': bus.minFare.toString()
+                          }),
+                          style:
+                              context.textTheme.bodySmall,
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
