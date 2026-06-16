@@ -28,7 +28,6 @@ void main() async {
 
   await GetStorage.init();
 
-  // Initialize Controllers
   Get.put(SettingsController(), permanent: true);
   Get.put(BusController(), permanent: true);
   Get.put(FavoriteController(), permanent: true);
@@ -46,8 +45,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final SettingsController settingsController =
         Get.find();
-
-    // Base Text Theme
     const textTheme = TextTheme(
       headlineSmall: TextStyle(fontSize: 20),
       titleLarge: TextStyle(
@@ -62,14 +59,13 @@ class MyApp extends StatelessWidget {
       title: 'Dhaka Bus Finder',
       debugShowCheckedModeBanner: false,
 
-      // Localization Setup
+
       translations: AppTranslations(),
       locale: settingsController.isBangla.value
           ? const Locale('bn', 'BD')
           : const Locale('en', 'US'),
       fallbackLocale: const Locale('en', 'US'),
 
-      // Light Theme (Default)
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
@@ -102,8 +98,6 @@ class MyApp extends StatelessWidget {
           fillColor: AppColors.gradientPurple,
         ),
       ),
-
-      // Dark Theme (User Selectable)
       darkTheme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
@@ -137,12 +131,10 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
-      // Set initial ThemeMode based on SettingsController
       themeMode: settingsController.isDarkMode.value
           ? ThemeMode.dark
           : ThemeMode.light,
 
-      // Routes
       initialRoute: '/splash',
       getPages: [
         GetPage(
