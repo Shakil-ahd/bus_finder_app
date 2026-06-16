@@ -29,15 +29,13 @@ class _DetailsScreenState extends State<DetailsScreen> {
   @override
   void initState() {
     super.initState();
-    // Bus object এখানে সেফ
     bus = busController.selectedBus.value!;
-    // FareController এখানে তৈরি করা হলো
+
     fareController = Get.put(FareController(bus));
   }
 
   @override
   void dispose() {
-    // FareController পেজ বন্ধ হওয়ার সাথে সাথে মেমরি থেকে সরানো হলো
     Get.delete<FareController>();
     super.dispose();
   }
@@ -53,7 +51,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
     return Scaffold(
       appBar: GradientAppBar(
-        // FIX: title এখন সরাসরি Widget গ্রহণ করে, তাই Obx ঠিকমতো কাজ করবে।
         title: Obx(() => Text(
             settingsController.isBangla.value
                 ? bus.nameBn
@@ -87,8 +84,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
             _buildFareCalculatorCard(
                 context, fareController, bus),
             const SizedBox(height: 24),
-
-            // --- শুধুমাত্র একটি স্টপেজ লিস্ট ব্লক রাখা হলো ---
             Obx(() => Text(
                   settingsController.isBangla.value
                       ? 'stoppages_bangla'.tr
@@ -107,7 +102,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                 AppColors.primaryGradient,
               ),
             ),
-            // --- আগের ইংরেজি স্টপেজ ব্লক সরানো হয়েছে ---
           ],
         ),
       ),
@@ -116,7 +110,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
   Widget _buildInfoCard(
       BuildContext context, BusModel bus) {
-    // FIX: context.isDarkMode এর বদলে Get.isDarkMode ব্যবহার করা হলো
     final isDarkMode = Get.isDarkMode;
     return Container(
       width: double.infinity,
